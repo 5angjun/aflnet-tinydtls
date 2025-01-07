@@ -965,7 +965,7 @@ unsigned int* extract_response_codes_dns(unsigned char* buf, unsigned int buf_si
 }
 
 static unsigned char dtls12_version[2] = {0xFE, 0xFD};
-
+static unsigned char dtls12_version_latest[2] = {0xFE, 0xFF};
 // (D)TLS known and custom constants
 
 // the known 1-byte (D)TLS content types
@@ -994,7 +994,7 @@ region_t *extract_requests_dtls12(unsigned char* buf, unsigned int buf_size, uns
      //Check if the first three bytes are <valid_content_type><dtls-1.2>
      if ((byte_count > 3 && buf_size - byte_count > 1) &&
      (buf[byte_count] >= CCS_CONTENT_TYPE && buf[byte_count] <= HEARTBEAT_CONTENT_TYPE)  &&
-     (memcmp(&buf[byte_count+1], dtls12_version, 2) == 0)) {
+     (memcmp(&buf[byte_count+1], dtls12_version, 2) == 0)||memcmp(&buf[byte_count+1], dtls12_version_latest, 2) == 0)) {
        region_count++;
        regions = (region_t *)ck_realloc(regions, region_count * sizeof(region_t));
        regions[region_count - 1].start_byte = cur_start;
@@ -1053,7 +1053,7 @@ unsigned int* extract_response_codes_dtls12(unsigned char* buf, unsigned int buf
     // a DTLS 1.2 record has a 13 bytes header, followed by the contained message
     if ( (buf_size - byte_count > 13) &&
     (buf[byte_count] >= CCS_CONTENT_TYPE && buf[byte_count] <= HEARTBEAT_CONTENT_TYPE)  &&
-    (memcmp(&buf[byte_count+1], dtls12_version, 2) == 0)) {
+    ((memcmp(&buf[byte_count+1], dtls12_version, 2) == 0)||memcmp(&buf[byte_count+1], dtls12_version_latest, 2) == 0)) {
       unsigned char content_type = buf[byte_count];
       unsigned char message_type;
       u32 record_length = read_bytes_to_uint32(buf, byte_count+11, 2);
